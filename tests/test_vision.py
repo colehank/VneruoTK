@@ -431,6 +431,17 @@ def _timm_installed():
         return False
 
 
+def _network_available(host: str = "huggingface.co", port: int = 443) -> bool:
+    import socket
+
+    try:
+        socket.setdefaulttimeout(3)
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+        return True
+    except OSError:
+        return False
+
+
 def _transformers_installed():
     try:
         import transformers  # noqa: F401
@@ -476,7 +487,10 @@ class TestTimmSmokeTest:
         backend.remove_hooks()
 
 
-@pytest.mark.skipif(not _transformers_installed(), reason="transformers not installed")
+@pytest.mark.skipif(
+    not _transformers_installed() or not _network_available(),
+    reason="transformers not installed or network unavailable",
+)
 class TestTransformersSmokeTest:
     def test_dinov2_all_tokens(self):
         from PIL import Image
