@@ -1,0 +1,24 @@
+.claude/
+DB/
+*.ipynb
+
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv/
+
+.*_cache/
+
+
+# Device's specific requirement
+# 4example: `constraint-dependencies = ["torch<2.5"]`
+# useful when local development on different machines with different cuda versions
+uv.toml
+
+examples/
