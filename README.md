@@ -1,6 +1,6 @@
 # VneuroTK
 
-[![Tests](https://img.shields.io/github/actions/workflow/status/vneurotk/vneurotk/test.yml?branch=main)](https://github.com/vneurotk/vneurotk/actions/workflows/test.yml)
+[![Tests](https://img.shields.io/github/actions/workflow/status/colehank/VneruoTK/tests.yml?branch=main)](https://github.com/colehank/VneruoTK/actions/workflows/tests.yml)
 [![PyPI](https://img.shields.io/pypi/v/VneuroTK?color=blue)](https://pypi.org/project/VneuroTK/)  
 A unified toolkit for visual neuroscience.  
 
