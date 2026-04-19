@@ -7,7 +7,6 @@ from typing import Optional
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-
 from trial_cebra import TrialAwareDistribution
 
 from ._utils import ImageSource, fmt_time, get_img
@@ -18,6 +17,7 @@ _TIME_CONSTRAINED = frozenset({"trialTime", "trialTime_delta", "trialTime_trialD
 
 
 # ── sampling ──────────────────────────────────────────────────────────────────
+
 
 def _sample_triplet(
     dist: TrialAwareDistribution,
@@ -37,7 +37,7 @@ def _sample_triplet(
         tid = dist.timepoint_to_trial[idx].item()
         if tid >= 0:
             start = dist.trial_starts[tid].item()
-            end   = dist.trial_ends[tid].item()
+            end = dist.trial_ends[tid].item()
         else:
             start, end = 0, N
         results.append({"trial_id": tid, "rel_pos": idx.item() - start, "trial_len": end - start})
@@ -46,6 +46,7 @@ def _sample_triplet(
 
 
 # ── drawing helpers ───────────────────────────────────────────────────────────
+
 
 def _draw_images(axes, samples, trial_labels, images, colors, sfreq):
     for ax, s, color, label in zip(axes, samples, colors, ["R", "+", "-"]):
@@ -60,12 +61,14 @@ def _draw_images(axes, samples, trial_labels, images, colors, sfreq):
         ax.set_title(label, fontsize=10)
         ax.set_xlabel(
             f"trial {s['trial_id']}: {fmt_time(s['rel_pos'], sfreq)}",
-            fontsize=10, labelpad=3,
+            fontsize=10,
+            labelpad=3,
         )
 
 
-def _draw_timeline(ax, samples, anchor_trial_len, time_offset, sfreq,
-                   colors, c_window, c_bar, show_window: bool):
+def _draw_timeline(
+    ax, samples, anchor_trial_len, time_offset, sfreq, colors, c_window, c_bar, show_window: bool
+):
     anchor_rel = samples[0]["rel_pos"]
     win_lo = max(0, anchor_rel - time_offset)
     win_hi = min(anchor_trial_len, anchor_rel + time_offset)
@@ -73,21 +76,42 @@ def _draw_timeline(ax, samples, anchor_trial_len, time_offset, sfreq,
     ax.barh(0, anchor_trial_len, left=0, height=0.35, color=c_bar, edgecolor="none")
 
     if show_window:
-        ax.barh(0, win_hi - win_lo, left=win_lo, height=0.35,
-                color=c_window, alpha=0.2, edgecolor=c_window, linewidth=1.2)
+        ax.barh(
+            0,
+            win_hi - win_lo,
+            left=win_lo,
+            height=0.35,
+            color=c_window,
+            alpha=0.2,
+            edgecolor=c_window,
+            linewidth=1.2,
+        )
         ax.text(
-            (win_lo + win_hi) / 2, 0.35,
+            (win_lo + win_hi) / 2,
+            0.35,
             f"Time offset({time_offset}): {fmt_time(win_lo, sfreq)} ~ {fmt_time(win_hi, sfreq)}",
-            ha="center", va="bottom", color=c_window, fontsize=8.5, fontstyle="italic",
+            ha="center",
+            va="bottom",
+            color=c_window,
+            fontsize=8.5,
+            fontstyle="italic",
         )
 
     for s, color in zip(samples, colors):
-        ax.plot([s["rel_pos"]] * 2, [-0.22, 0.22],
-                color=color, linewidth=2.5, solid_capstyle="round")
+        ax.plot(
+            [s["rel_pos"]] * 2, [-0.22, 0.22], color=color, linewidth=2.5, solid_capstyle="round"
+        )
 
-    ax.text(0, -0.4, fmt_time(0, sfreq), ha="left",  va="bottom", fontsize=8.5, color="gray")
-    ax.text(anchor_trial_len, -0.4, fmt_time(anchor_trial_len, sfreq),
-            ha="right", va="bottom", fontsize=8.5, color="gray")
+    ax.text(0, -0.4, fmt_time(0, sfreq), ha="left", va="bottom", fontsize=8.5, color="gray")
+    ax.text(
+        anchor_trial_len,
+        -0.4,
+        fmt_time(anchor_trial_len, sfreq),
+        ha="right",
+        va="bottom",
+        fontsize=8.5,
+        color="gray",
+    )
     ax.text(anchor_trial_len / 2, -0.5, "In-trial time", ha="center", va="bottom", fontsize=10)
 
     ax.set_xlim(-3, anchor_trial_len + 3)
@@ -96,6 +120,7 @@ def _draw_timeline(ax, samples, anchor_trial_len, time_offset, sfreq,
 
 
 # ── public API ────────────────────────────────────────────────────────────────
+
 
 def plot_sampling(
     dist: TrialAwareDistribution,
@@ -131,13 +156,21 @@ def plot_sampling(
     colors = [c_anchor, c_pos, c_neg]
 
     fig = plt.figure(figsize=figsize)
-    gs  = fig.add_gridspec(2, 3)
+    gs = fig.add_gridspec(2, 3)
 
     img_axes = [fig.add_subplot(gs[0, col]) for col in range(3)]
     _draw_images(img_axes, samples, trial_labels, images, colors, sfreq)
 
     ax_bar = fig.add_subplot(gs[1, :])
-    _draw_timeline(ax_bar, samples, anchor_trial_len, dist.time_offset,
-                   sfreq, colors, c_window, c_bar,
-                   show_window=dist.conditional in _TIME_CONSTRAINED)
+    _draw_timeline(
+        ax_bar,
+        samples,
+        anchor_trial_len,
+        dist.time_offset,
+        sfreq,
+        colors,
+        c_window,
+        c_bar,
+        show_window=dist.conditional in _TIME_CONSTRAINED,
+    )
     return fig

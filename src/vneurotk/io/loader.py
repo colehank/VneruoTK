@@ -9,12 +9,17 @@ import numpy as np
 import pandas as pd
 from loguru import logger
 
-from vneurotk.neuro.base import BaseData
 from vneurotk.io.path import BIDSPath, EphysPath, MNEPath, VTKPath
+from vneurotk.neuro.base import BaseData
 
-_META_DTYPES = frozenset([
-    "TrialRecord", "ChTrialRecord", "UnitProp", "ChProp",
-])
+_META_DTYPES = frozenset(
+    [
+        "TrialRecord",
+        "ChTrialRecord",
+        "UnitProp",
+        "ChProp",
+    ]
+)
 
 
 def read(
@@ -92,8 +97,7 @@ def _load_from_ephys(path: EphysPath) -> BaseData:
 
     if dtype in _META_DTYPES:
         raise ValueError(
-            f"'{dtype}' is a metadata file. Pass a neuro dtype "
-            f"(TrialRaster, MeanFr, etc.) instead."
+            f"'{dtype}' is a metadata file. Pass a neuro dtype (TrialRaster, MeanFr, etc.) instead."
         )
 
     if dtype == "TrialRaster":
@@ -125,12 +129,18 @@ def _load_ephys_raster(path: EphysPath, level: str) -> BaseData:
         record_dtype, prop_dtype = "ChTrialRecord", "ChProp"
 
     record_path = EphysPath(
-        root=path.root, session_id=path.session_id,
-        dtype=record_dtype, probe=path.probe, extension="csv",
+        root=path.root,
+        session_id=path.session_id,
+        dtype=record_dtype,
+        probe=path.probe,
+        extension="csv",
     )
     prop_path = EphysPath(
-        root=path.root, session_id=path.session_id,
-        dtype=prop_dtype, probe=path.probe, extension="csv",
+        root=path.root,
+        session_id=path.session_id,
+        dtype=prop_dtype,
+        probe=path.probe,
+        extension="csv",
     )
 
     # --- read raster metadata only (no data) ---
@@ -165,9 +175,7 @@ def _load_ephys_raster(path: EphysPath, level: str) -> BaseData:
             col = f["col"][:]
             data = f["data"][:]
         flat_shape = (original_shape[0] * original_shape[1], original_shape[2])
-        sparse = coo_matrix(
-            (data, (row, col)), shape=flat_shape, dtype=stored_dtype
-        )
+        sparse = coo_matrix((data, (row, col)), shape=flat_shape, dtype=stored_dtype)
         dense = sparse.toarray().reshape(original_shape)
         if _level == "unit":
             return dense.transpose(1, 2, 0)
@@ -238,7 +246,10 @@ def _load_ephys_raster(path: EphysPath, level: str) -> BaseData:
 
     logger.info(
         "Loaded ephys {} (lazy): {} trials, {} timebins, {} channels",
-        path.dtype, n_trials, n_timebins, n_chan,
+        path.dtype,
+        n_trials,
+        n_timebins,
+        n_chan,
     )
     return bd
 
@@ -251,12 +262,18 @@ def _load_ephys_mean_fr(path: EphysPath, level: str) -> BaseData:
         record_dtype, prop_dtype = "ChTrialRecord", "ChProp"
 
     record_path = EphysPath(
-        root=path.root, session_id=path.session_id,
-        dtype=record_dtype, probe=path.probe, extension="csv",
+        root=path.root,
+        session_id=path.session_id,
+        dtype=record_dtype,
+        probe=path.probe,
+        extension="csv",
     )
     prop_path = EphysPath(
-        root=path.root, session_id=path.session_id,
-        dtype=prop_dtype, probe=path.probe, extension="csv",
+        root=path.root,
+        session_id=path.session_id,
+        dtype=prop_dtype,
+        probe=path.probe,
+        extension="csv",
     )
 
     fpath = path.fpath
@@ -292,7 +309,8 @@ def _load_ephys_mean_fr(path: EphysPath, level: str) -> BaseData:
 
     logger.info(
         "Loaded ephys {} (trial-level): shape {}",
-        path.dtype, neuro.shape,
+        path.dtype,
+        neuro.shape,
     )
     return bd
 
@@ -300,8 +318,11 @@ def _load_ephys_mean_fr(path: EphysPath, level: str) -> BaseData:
 def _load_ephys_stim_fr(path: EphysPath) -> BaseData:
     """Load ChStimFr into a stimulus-level BaseData."""
     prop_path = EphysPath(
-        root=path.root, session_id=path.session_id,
-        dtype="ChProp", probe=path.probe, extension="csv",
+        root=path.root,
+        session_id=path.session_id,
+        dtype="ChProp",
+        probe=path.probe,
+        extension="csv",
     )
 
     fpath = path.fpath
@@ -378,7 +399,9 @@ def _load_from_mne(path: MNEPath) -> BaseData:
     bd._neuro_loader = _neuro_loader
     logger.info(
         "MNE metadata loaded: {} timepoints, {} channels, sfreq={} Hz",
-        len(raw.times), len(raw.ch_names), raw.info["sfreq"],
+        len(raw.times),
+        len(raw.ch_names),
+        raw.info["sfreq"],
     )
     return bd
 
@@ -414,7 +437,9 @@ def _load_from_bids(path: BIDSPath) -> BaseData:
     bd._neuro_loader = _neuro_loader
     logger.info(
         "BIDS metadata loaded: {} timepoints, {} channels, sfreq={} Hz",
-        len(raw.times), len(raw.ch_names), raw.info["sfreq"],
+        len(raw.times),
+        len(raw.ch_names),
+        raw.info["sfreq"],
     )
     return bd
 
@@ -437,7 +462,9 @@ def _load_from_h5(fpath: Path) -> BaseData:
             neuro_dtype = str(f.attrs["neuro_dtype"])
 
             def _neuro_loader(
-                _fpath=fpath, _shape=neuro_shape, _dtype=neuro_dtype,
+                _fpath=fpath,
+                _shape=neuro_shape,
+                _dtype=neuro_dtype,
             ) -> np.ndarray:
                 from scipy.sparse import coo_matrix as _coo
 
@@ -529,10 +556,9 @@ def _load_from_h5(fpath: Path) -> BaseData:
             for col_name in f["trial_meta"]:
                 vals = f["trial_meta"][col_name][:]
                 if vals.dtype.kind == "S" or vals.dtype.kind == "O":
-                    vals = np.array([
-                        v.decode("utf-8") if isinstance(v, bytes) else str(v)
-                        for v in vals
-                    ])
+                    vals = np.array(
+                        [v.decode("utf-8") if isinstance(v, bytes) else str(v) for v in vals]
+                    )
                 cols[col_name] = vals
             trial_meta = pd.DataFrame(cols)
 

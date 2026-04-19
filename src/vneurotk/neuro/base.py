@@ -79,9 +79,7 @@ class BaseData:
         data_level: str = "timepoint",
     ) -> None:
         # neuro is stored as _neuro; accessed via property for lazy loading
-        self._neuro: np.ndarray | None = (
-            np.asarray(neuro) if neuro is not None else None
-        )
+        self._neuro: np.ndarray | None = np.asarray(neuro) if neuro is not None else None
         self._neuro_loader: Callable[[], np.ndarray] | None = None
         self.neuro_info = neuro_info
 
@@ -97,9 +95,7 @@ class BaseData:
 
         self._crop_mode: str | None = None
 
-        logger.debug(
-            "BaseData created: ntime={}, nchan={}", self.ntime, self.nchan
-        )
+        logger.debug("BaseData created: ntime={}, nchan={}", self.ntime, self.nchan)
 
     # ------------------------------------------------------------------
     # neuro property (lazy loading)
@@ -188,10 +184,7 @@ class BaseData:
         """
         if not self.configured:
             raise RuntimeError("BaseData not configured. Call configure() first.")
-        return np.array([
-            self.vision[int(self.vision_onsets[i])]
-            for i in range(self.n_trials)
-        ])
+        return np.array([self.vision[int(self.vision_onsets[i])] for i in range(self.n_trials)])
 
     @property
     def info(self) -> Info:
@@ -310,17 +303,11 @@ class BaseData:
             ``(n_trials, n_timepoints, nchan)``.
         """
         if not self.configured:
-            raise RuntimeError(
-                "Cannot crop unconfigured BaseData. Call configure() first."
-            )
+            raise RuntimeError("Cannot crop unconfigured BaseData. Call configure() first.")
         if self.data_level != "timepoint":
-            raise ValueError(
-                f"crop() requires data_level='timepoint', got '{self.data_level}'"
-            )
+            raise ValueError(f"crop() requires data_level='timepoint', got '{self.data_level}'")
         if mode not in ("continues", "epochs"):
-            raise ValueError(
-                f"mode must be 'continues' or 'epochs', got '{mode}'"
-            )
+            raise ValueError(f"mode must be 'continues' or 'epochs', got '{mode}'")
 
         # --- extract per-trial segments ---
         seg_neuro, seg_vision, seg_trial = [], [], []
@@ -395,9 +382,7 @@ class BaseData:
             If data has not been cropped yet.
         """
         if self._crop_mode is None:
-            raise RuntimeError(
-                "Cannot convert uncropped data. Call crop() first."
-            )
+            raise RuntimeError("Cannot convert uncropped data. Call crop() first.")
         if self._crop_mode == "continues":
             logger.warning("Data is already in continues mode.")
             return
@@ -427,9 +412,7 @@ class BaseData:
             If data has not been cropped yet.
         """
         if self._crop_mode is None:
-            raise RuntimeError(
-                "Cannot convert uncropped data. Call crop() first."
-            )
+            raise RuntimeError("Cannot convert uncropped data. Call crop() first.")
         if self._crop_mode == "epochs":
             logger.warning("Data is already in epochs mode.")
             return
@@ -487,11 +470,7 @@ class BaseData:
         """
         from vneurotk.viz.data import plot_data
 
-        tw = (
-            self.trial_info["trial_window"]
-            if self.trial_info is not None
-            else None
-        )
+        tw = self.trial_info["trial_window"] if self.trial_info is not None else None
 
         # epochs mode: flatten (n_trials, n_timebins, n_chan) → (n_total, n_chan)
         neuro = self.neuro
@@ -537,9 +516,7 @@ class BaseData:
             If :meth:`configure` has not been called yet.
         """
         if not self.configured:
-            raise RuntimeError(
-                "Cannot save unconfigured BaseData. Call configure() first."
-            )
+            raise RuntimeError("Cannot save unconfigured BaseData. Call configure() first.")
 
         fpath = self._resolve_path(path)
         fpath.parent.mkdir(parents=True, exist_ok=True)
@@ -547,10 +524,7 @@ class BaseData:
         with h5py.File(fpath, "w") as f:
             # --- neuro: COO sparse for large 3D data, dense otherwise ---
             neuro_arr = self.neuro
-            use_coo = (
-                neuro_arr.ndim == 3
-                and (neuro_arr == 0).sum() / neuro_arr.size > 0.5
-            )
+            use_coo = neuro_arr.ndim == 3 and (neuro_arr == 0).sum() / neuro_arr.size > 0.5
             if use_coo:
                 from scipy.sparse import coo_matrix
 
@@ -595,7 +569,11 @@ class BaseData:
                 if v is None:
                     continue
                 if isinstance(v, list):
-                    ni.attrs[k] = np.array(v, dtype=h5py.string_dtype()) if all(isinstance(x, str) for x in v) else np.array(v)
+                    ni.attrs[k] = (
+                        np.array(v, dtype=h5py.string_dtype())
+                        if all(isinstance(x, str) for x in v)
+                        else np.array(v)
+                    )
                 else:
                     ni.attrs[k] = v
 
@@ -622,9 +600,7 @@ class BaseData:
                 for col in self.trial_meta.columns:
                     vals = self.trial_meta[col].values
                     if vals.dtype == object:
-                        vals = np.array(
-                            [str(v) for v in vals], dtype=h5py.string_dtype()
-                        )
+                        vals = np.array([str(v) for v in vals], dtype=h5py.string_dtype())
                     tm.create_dataset(col, data=vals)
 
         logger.info("Saved BaseData to {}", fpath)
@@ -634,9 +610,7 @@ class BaseData:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _window_to_samples(
-        trial_window: list[float | int], sfreq: float
-    ) -> list[int]:
+    def _window_to_samples(trial_window: list[float | int], sfreq: float) -> list[int]:
         """Convert a trial window to sample offsets.
 
         Float values are treated as seconds; int values as raw samples.

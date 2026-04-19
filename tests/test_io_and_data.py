@@ -9,8 +9,8 @@ import numpy as np
 import pytest
 
 import vneurotk as vnt
-from vneurotk.neuro import BaseData
 from vneurotk.io import BIDSPath, EphysPath, MNEPath, VTKPath
+from vneurotk.neuro import BaseData
 
 
 class TestVTKPath:
@@ -49,19 +49,23 @@ class TestEphysPath:
         path = EphysPath(root=self.ROOT, session_id=self.SESSION_ID, dtype="TrialRaster")
         assert path.modality == "ephys"
         fp = path.fpath
-        assert str(fp) == str(self.ROOT / "sessions" / self.SESSION_ID / f"TrialRaster_{self.SESSION_ID}.h5")
+        assert str(fp) == str(
+            self.ROOT / "sessions" / self.SESSION_ID / f"TrialRaster_{self.SESSION_ID}.h5"
+        )
         assert "_probe" not in fp.name
 
     def test_fpath_multi_probe(self):
         """Multi-probe session: fpath contains _probe{N} tag."""
         p0 = EphysPath(root=self.ROOT, session_id=self.SESSION_ID, dtype="MeanFr", probe=0)
         p1 = EphysPath(root=self.ROOT, session_id=self.SESSION_ID, dtype="MeanFr", probe=1)
-        assert f"_probe0" in p0.fpath.name
-        assert f"_probe1" in p1.fpath.name
+        assert "_probe0" in p0.fpath.name
+        assert "_probe1" in p1.fpath.name
 
     def test_fpath_csv_extension(self):
         """csv extension is accepted and applied correctly."""
-        path = EphysPath(root=self.ROOT, session_id=self.SESSION_ID, dtype="UnitProp", extension="csv")
+        path = EphysPath(
+            root=self.ROOT, session_id=self.SESSION_ID, dtype="UnitProp", extension="csv"
+        )
         assert path.fpath.suffix == ".csv"
 
     def test_session_dir(self):
@@ -244,9 +248,7 @@ class TestBaseData:
             assert loaded_data.nchan == data.nchan
             assert loaded_data.n_trials == data.n_trials
             assert np.allclose(loaded_data.neuro, data.neuro)
-            assert np.allclose(
-                loaded_data.vision_onsets, data.vision_onsets
-            )
+            assert np.allclose(loaded_data.vision_onsets, data.vision_onsets)
 
     def test_basedata_save_unconfigured_raises(self):
         """Test that saving unconfigured BaseData raises error."""
@@ -464,14 +466,20 @@ class TestBaseDataLoad:
     def _make_configured_bd(self) -> "BaseData":
         neuro = np.zeros((3, 100, 5), dtype=np.float32)  # sparse 3D
         neuro_info = {
-            "sfreq": 1000, "ch_names": [f"ch{i}" for i in range(5)],
-            "highpass": None, "lowpass": None, "source_file": "",
+            "sfreq": 1000,
+            "ch_names": [f"ch{i}" for i in range(5)],
+            "highpass": None,
+            "lowpass": None,
+            "source_file": "",
             "shape": (3, 100, 5),
         }
         bd = BaseData(
-            neuro=None, neuro_info=neuro_info,
-            vision=np.zeros((3, 100)), trial=np.zeros((3, 100)),
-            trial_starts=np.array([0, 0, 0]), trial_ends=np.array([100, 100, 100]),
+            neuro=None,
+            neuro_info=neuro_info,
+            vision=np.zeros((3, 100)),
+            trial=np.zeros((3, 100)),
+            trial_starts=np.array([0, 0, 0]),
+            trial_ends=np.array([100, 100, 100]),
             vision_onsets=np.array([50, 50, 50]),
             vision_info={"n_stim": 1, "stim_ids": [0]},
             trial_info={"baseline": [-50, 0], "trial_window": [-50, 50]},
@@ -696,12 +704,16 @@ class TestEphysSaveLoadRoundtrip:
 
         with tempfile.TemporaryDirectory() as tmpdir:
             save_path = VTKPath(
-                Path(tmpdir), subject="FanFan", session="nsd1w", task="raster",
+                Path(tmpdir),
+                subject="FanFan",
+                session="nsd1w",
+                task="raster",
             )
             bd.save(save_path)
 
             # verify COO format on disk
             import h5py
+
             with h5py.File(save_path.fpath, "r") as f:
                 assert str(f.attrs["neuro_format"]) == "coo"
                 assert "neuro_row" in f
@@ -729,7 +741,10 @@ class TestEphysSaveLoadRoundtrip:
 
         with tempfile.TemporaryDirectory() as tmpdir:
             save_path = VTKPath(
-                Path(tmpdir), subject="FanFan", session="nsd1w", task="meta",
+                Path(tmpdir),
+                subject="FanFan",
+                session="nsd1w",
+                task="meta",
             )
             bd.save(save_path)
 
@@ -742,8 +757,11 @@ class TestEphysSaveLoadRoundtrip:
         """Non-sparse 2D data still uses dense format."""
         neuro = np.random.randn(1000, 10)
         neuro_info = {
-            "sfreq": 100.0, "ch_names": [f"ch{i}" for i in range(10)],
-            "highpass": 0.1, "lowpass": 40.0, "source_file": "/test.fif",
+            "sfreq": 100.0,
+            "ch_names": [f"ch{i}" for i in range(10)],
+            "highpass": 0.1,
+            "lowpass": 40.0,
+            "source_file": "/test.fif",
         }
         data = BaseData(neuro=neuro, neuro_info=neuro_info)
         data.configure(
@@ -756,6 +774,7 @@ class TestEphysSaveLoadRoundtrip:
             data.save(fpath)
 
             import h5py
+
             with h5py.File(fpath, "r") as f:
                 assert str(f.attrs.get("neuro_format", "dense")) == "dense"
                 assert "neuro" in f

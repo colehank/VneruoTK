@@ -77,9 +77,7 @@ class ModelRegistry:
         """
         if name not in self._configs:
             available = ", ".join(sorted(self._configs))
-            raise KeyError(
-                f"Model {name!r} not in registry.  Available: {available}"
-            )
+            raise KeyError(f"Model {name!r} not in registry.  Available: {available}")
         return self._configs[name]
 
     def register(self, name: str, config: ModelConfig) -> None:
@@ -114,81 +112,83 @@ class ModelRegistry:
 # Built-in registry
 # ------------------------------------------------------------------
 
-REGISTRY = ModelRegistry({
-    # ── timm supervised ───────────────────────────────────────────────
-    "vit-b-16-imagenet": ModelConfig(
-        source="timm",
-        model_id="vit_base_patch16_224",
-        policy="all_tokens",
-        paradigm="supervised",
-    ),
-    "vit-b-16-in21k": ModelConfig(
-        source="timm",
-        model_id="vit_base_patch16_224.augreg2_in21k_ft_in1k",
-        policy="all_tokens",
-        paradigm="supervised",
-    ),
-    "resnet50": ModelConfig(
-        source="timm",
-        model_id="resnet50",
-        policy="pre_head",
-        paradigm="supervised",
-    ),
-    "resnet50-a1": ModelConfig(
-        source="timm",
-        model_id="resnet50.a1_in1k",
-        policy="pre_head",
-        paradigm="supervised",
-    ),
-    "resnetv2-50": ModelConfig(
-        source="timm",
-        model_id="resnetv2_50.a1h_in1k",
-        policy="pre_head",
-        paradigm="supervised",
-    ),
-    # ── timm self-supervised ──────────────────────────────────────────
-    "vit-b-16-dino": ModelConfig(
-        source="timm",
-        model_id="vit_base_patch16_224.dino",
-        policy="all_tokens",
-        paradigm="selfsupervised",
-    ),
-    # ── transformers self-supervised ──────────────────────────────────
-    "dinov2-vit-b": ModelConfig(
-        source="transformers",
-        model_id="facebook/dinov2-base",
-        policy="all_tokens",
-        paradigm="selfsupervised",
-    ),
-    "dinov3-vit-b": ModelConfig(
-        source="transformers",
-        model_id="facebook/dinov3-vitb16-pretrain-lvd1689m",
-        policy="all_tokens",
-        paradigm="selfsupervised",
-    ),
-    "dinov3-vit-s": ModelConfig(
-        source="transformers",
-        model_id="facebook/dinov3-vits16-pretrain-lvd1689m",
-        policy="all_tokens",
-        paradigm="selfsupervised",
-    ),
-    # ── transformers contrastive ──────────────────────────────────────
-    "clip-vit-b-32": ModelConfig(
-        source="transformers",
-        model_id="openai/clip-vit-base-patch32",
-        policy="projection_out",
-        paradigm="contrastive",
-    ),
-    "siglip-b-16": ModelConfig(
-        source="transformers",
-        model_id="google/siglip-base-patch16-224",
-        policy="mean_pool",
-        paradigm="contrastive",
-    ),
-    "siglip2-b-16": ModelConfig(
-        source="transformers",
-        model_id="google/siglip2-base-patch16-224",
-        policy="mean_pool",
-        paradigm="contrastive",
-    ),
-})
+REGISTRY = ModelRegistry(
+    {
+        # ── timm supervised ───────────────────────────────────────────────
+        "vit-b-16-imagenet": ModelConfig(
+            source="timm",
+            model_id="vit_base_patch16_224",
+            policy="all_tokens",
+            paradigm="supervised",
+        ),
+        "vit-b-16-in21k": ModelConfig(
+            source="timm",
+            model_id="vit_base_patch16_224.augreg2_in21k_ft_in1k",
+            policy="all_tokens",
+            paradigm="supervised",
+        ),
+        "resnet50": ModelConfig(
+            source="timm",
+            model_id="resnet50",
+            policy="pre_head",
+            paradigm="supervised",
+        ),
+        "resnet50-a1": ModelConfig(
+            source="timm",
+            model_id="resnet50.a1_in1k",
+            policy="pre_head",
+            paradigm="supervised",
+        ),
+        "resnetv2-50": ModelConfig(
+            source="timm",
+            model_id="resnetv2_50.a1h_in1k",
+            policy="pre_head",
+            paradigm="supervised",
+        ),
+        # ── timm self-supervised ──────────────────────────────────────────
+        "vit-b-16-dino": ModelConfig(
+            source="timm",
+            model_id="vit_base_patch16_224.dino",
+            policy="all_tokens",
+            paradigm="selfsupervised",
+        ),
+        # ── transformers self-supervised ──────────────────────────────────
+        "dinov2-vit-b": ModelConfig(
+            source="transformers",
+            model_id="facebook/dinov2-base",
+            policy="all_tokens",
+            paradigm="selfsupervised",
+        ),
+        "dinov3-vit-b": ModelConfig(
+            source="transformers",
+            model_id="facebook/dinov3-vitb16-pretrain-lvd1689m",
+            policy="all_tokens",
+            paradigm="selfsupervised",
+        ),
+        "dinov3-vit-s": ModelConfig(
+            source="transformers",
+            model_id="facebook/dinov3-vits16-pretrain-lvd1689m",
+            policy="all_tokens",
+            paradigm="selfsupervised",
+        ),
+        # ── transformers contrastive ──────────────────────────────────────
+        "clip-vit-b-32": ModelConfig(
+            source="transformers",
+            model_id="openai/clip-vit-base-patch32",
+            policy="projection_out",
+            paradigm="contrastive",
+        ),
+        "siglip-b-16": ModelConfig(
+            source="transformers",
+            model_id="google/siglip-base-patch16-224",
+            policy="mean_pool",
+            paradigm="contrastive",
+        ),
+        "siglip2-b-16": ModelConfig(
+            source="transformers",
+            model_id="google/siglip2-base-patch16-224",
+            policy="mean_pool",
+            paradigm="contrastive",
+        ),
+    }
+)

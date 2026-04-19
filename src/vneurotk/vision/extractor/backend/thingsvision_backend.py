@@ -7,7 +7,6 @@ from typing import Any
 import numpy as np
 import torch
 from loguru import logger
-from torch import Tensor
 
 from vneurotk.vision.extractor.backend.base import BaseBackend, LayerInfo
 from vneurotk.vision.representation import ModelMeta
@@ -143,12 +142,14 @@ class ThingsVisionBackend(BaseBackend):
         for name, module in self.model.named_modules():
             if not name:
                 continue
-            result.append(LayerInfo(
-                name=name,
-                module_type=type(module).__name__,
-                depth=name.count(".") + 1,
-                n_params=sum(p.numel() for p in module.parameters()),
-            ))
+            result.append(
+                LayerInfo(
+                    name=name,
+                    module_type=type(module).__name__,
+                    depth=name.count(".") + 1,
+                    n_params=sum(p.numel() for p in module.parameters()),
+                )
+            )
         return result
 
     def get_model_meta(self) -> ModelMeta:
@@ -169,7 +170,17 @@ class ThingsVisionBackend(BaseBackend):
     @staticmethod
     def _infer_arch(model_name: str) -> str:
         n = model_name.lower()
-        for arch in ("vit", "resnet", "resnext", "efficientnet", "convnext", "swin", "deit", "alexnet", "vgg"):
+        for arch in (
+            "vit",
+            "resnet",
+            "resnext",
+            "efficientnet",
+            "convnext",
+            "swin",
+            "deit",
+            "alexnet",
+            "vgg",
+        ):
             if arch in n:
                 return arch
         return "unknown"

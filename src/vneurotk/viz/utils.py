@@ -1,6 +1,7 @@
 import matplotlib.ticker as ticker
 import numpy as np
 
+
 # ---------------------------------------------------------------------------
 # Label helpers
 # ---------------------------------------------------------------------------
@@ -14,9 +15,12 @@ def _truncate_label(label: str, maxlen: int = 3) -> str:
 
 def _is_null(v) -> bool:
     """Check if a label value is null/missing."""
-    return (v is None
-            or (isinstance(v, float) and np.isnan(v))
-            or str(v).strip().upper() in ("NONE", "NAN", ""))
+    return (
+        v is None
+        or (isinstance(v, float) and np.isnan(v))
+        or str(v).strip().upper() in ("NONE", "NAN", "")
+    )
+
 
 # ---------------------------------------------------------------------------
 # Tick formatting
@@ -44,7 +48,7 @@ def _smart_ticks(vmin: float, vmax: float, force_int: bool = False):
     max_abs = max(abs(vmin), abs(vmax))
     if not force_int and max_abs > 0 and (max_abs < 0.01 or max_abs >= 10000):
         exponent = int(np.floor(np.log10(max_abs)))
-        scale = 10 ** exponent
+        scale = 10**exponent
         offset_str = f"1e{exponent}"
     else:
         scale = 1.0

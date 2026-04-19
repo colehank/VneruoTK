@@ -53,9 +53,7 @@ class StimulusFeatures:
         self.features = features
         self.final_embedding = np.asarray(final_embedding)
         self.model_meta = model_meta
-        self._id_to_idx: dict[Any, int] = {
-            sid: i for i, sid in enumerate(self.stim_ids)
-        }
+        self._id_to_idx: dict[Any, int] = {sid: i for i, sid in enumerate(self.stim_ids)}
 
     # ------------------------------------------------------------------
     # Properties

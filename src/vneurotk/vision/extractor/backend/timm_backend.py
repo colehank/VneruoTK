@@ -7,7 +7,6 @@ from typing import Any
 import numpy as np
 import torch
 from loguru import logger
-from torch import Tensor
 
 from vneurotk.vision.extractor.backend.base import BaseBackend, LayerInfo
 from vneurotk.vision.representation import ModelMeta
@@ -89,6 +88,7 @@ class TimmBackend(BaseBackend):
             ``{"pixel_values": Tensor}`` with shape ``(1, C, H, W)``.
         """
         from PIL import Image as PILImage
+
         if isinstance(image, np.ndarray):
             image = PILImage.fromarray(image)
         tensor = self._transform(image)
@@ -128,12 +128,14 @@ class TimmBackend(BaseBackend):
         for name, module in self.model.named_modules():
             if not name:
                 continue
-            result.append(LayerInfo(
-                name=name,
-                module_type=type(module).__name__,
-                depth=name.count(".") + 1,
-                n_params=sum(p.numel() for p in module.parameters()),
-            ))
+            result.append(
+                LayerInfo(
+                    name=name,
+                    module_type=type(module).__name__,
+                    depth=name.count(".") + 1,
+                    n_params=sum(p.numel() for p in module.parameters()),
+                )
+            )
         return result
 
     def get_model_meta(self) -> ModelMeta:

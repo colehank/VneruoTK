@@ -8,10 +8,20 @@ from typing import Any
 
 from loguru import logger
 
-EPHYS_DTYPES: frozenset[str] = frozenset([
-    "TrialRaster", "TrialRecord", "UnitProp", "MeanFr", "AvgPsth",
-    "ChTrialRaster", "ChTrialRecord", "ChMeanFr", "ChProp", "ChStimFr",
-])
+EPHYS_DTYPES: frozenset[str] = frozenset(
+    [
+        "TrialRaster",
+        "TrialRecord",
+        "UnitProp",
+        "MeanFr",
+        "AvgPsth",
+        "ChTrialRaster",
+        "ChTrialRecord",
+        "ChMeanFr",
+        "ChProp",
+        "ChStimFr",
+    ]
+)
 
 EPHYS_EXTENSIONS: frozenset[str] = frozenset(["h5", "csv", "nwb"])
 
@@ -136,9 +146,7 @@ class EphysPath(VTKPath):
         """Validate dtype and extension."""
         super().__post_init__()
         if self.dtype is not None and self.dtype not in EPHYS_DTYPES:
-            raise ValueError(
-                f"Invalid dtype '{self.dtype}'. Must be one of {sorted(EPHYS_DTYPES)}"
-            )
+            raise ValueError(f"Invalid dtype '{self.dtype}'. Must be one of {sorted(EPHYS_DTYPES)}")
         if self.extension is not None:
             ext = self.extension.lstrip(".")
             if ext not in EPHYS_EXTENSIONS:

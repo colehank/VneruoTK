@@ -44,6 +44,7 @@ dev = [
 [tool.ruff]
 line-length = 100
 src = ["src"]
+exclude = ["docs"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W"]

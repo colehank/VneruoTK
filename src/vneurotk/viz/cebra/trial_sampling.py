@@ -9,16 +9,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from PIL import Image, ImageOps
-
 from trial_cebra import TrialAwareDistribution
 
 from ._utils import ImageSource, get_img
 
-_BORDER_PX   = 12
+_BORDER_PX = 12
 _TARGET_SIZE = (224, 224)
 
 
 # ── sampling ──────────────────────────────────────────────────────────────────
+
 
 def _sample_batch(
     dist: TrialAwareDistribution,
@@ -30,9 +30,11 @@ def _sample_batch(
     elif not isinstance(anchor_idx, torch.Tensor):
         anchor_idx = torch.tensor([anchor_idx], device=dist.device)
 
-    pos_idx = torch.stack(
-        [dist.sample_conditional(anchor_idx) for _ in range(batch_size)]
-    ).squeeze(1).to(dist.device)
+    pos_idx = (
+        torch.stack([dist.sample_conditional(anchor_idx) for _ in range(batch_size)])
+        .squeeze(1)
+        .to(dist.device)
+    )
     neg_idx = dist.sample_prior(num_samples=batch_size)
 
     def _info(idx: torch.Tensor):
@@ -46,6 +48,7 @@ def _sample_batch(
 
 # ── image helpers ─────────────────────────────────────────────────────────────
 
+
 def _make_sample_img(
     img: Image.Image,
     tid: int,
@@ -53,7 +56,7 @@ def _make_sample_img(
     width: int = _BORDER_PX,
 ) -> Image.Image:
     img = img.convert("RGB").resize(_TARGET_SIZE, Image.Resampling.LANCZOS)
-    fill = (0, 0, 0) if tid < 0 else (int(rgba[0]*255), int(rgba[1]*255), int(rgba[2]*255))
+    fill = (0, 0, 0) if tid < 0 else (int(rgba[0] * 255), int(rgba[1] * 255), int(rgba[2] * 255))
     return ImageOps.expand(img, border=width, fill=fill)
 
 
@@ -62,7 +65,7 @@ def _compose_grid(imgs: list[Image.Image], padding: int = 3) -> Image.Image:
         return imgs[0]
     cols = int(np.ceil(np.sqrt(len(imgs))))
     rows = int(np.ceil(len(imgs) / cols))
-    w = max(im.width  for im in imgs)
+    w = max(im.width for im in imgs)
     h = max(im.height for im in imgs)
     canvas = Image.new(
         "RGB",
@@ -70,12 +73,14 @@ def _compose_grid(imgs: list[Image.Image], padding: int = 3) -> Image.Image:
         (255, 255, 255),
     )
     for i, im in enumerate(imgs):
-        canvas.paste(im, (padding + (i % cols) * (w + padding),
-                          padding + (i // cols) * (h + padding)))
+        canvas.paste(
+            im, (padding + (i % cols) * (w + padding), padding + (i // cols) * (h + padding))
+        )
     return canvas
 
 
 # ── public API ────────────────────────────────────────────────────────────────
+
 
 def plot_trial_sampling(
     dist: TrialAwareDistribution,
@@ -108,19 +113,20 @@ def plot_trial_sampling(
         with a colorbar on the right showing in-trial time.
     """
     trial_labels = np.asarray(trial_labels)
-    (anc_tids, anc_rels), (pos_tids, pos_rels), (neg_tids, neg_rels) = \
-        _sample_batch(dist, batch_size, anchor_idx)
+    (anc_tids, anc_rels), (pos_tids, pos_rels), (neg_tids, neg_rels) = _sample_batch(
+        dist, batch_size, anchor_idx
+    )
 
     # colormap spanning the full trial length
     trial_len = int((dist.trial_ends - dist.trial_starts).float().mean().item())
     if sfreq is not None:
-        t_min = (0         - pre_len) * 1000.0 / sfreq
+        t_min = (0 - pre_len) * 1000.0 / sfreq
         t_max = (trial_len - pre_len) * 1000.0 / sfreq
     else:
         t_min, t_max = 0.0, float(trial_len)
 
     _cmap = plt.cm.get_cmap(cmap)
-    norm  = mcolors.Normalize(vmin=t_min, vmax=t_max)
+    norm = mcolors.Normalize(vmin=t_min, vmax=t_max)
 
     def _color(rel: int):
         t = (rel - pre_len) * 1000.0 / sfreq if sfreq else float(rel)
@@ -135,7 +141,7 @@ def plot_trial_sampling(
         imgs = []
         for tid, rel in zip(tids.ravel(), rels.ravel()):
             img_id = str(trial_labels[int(tid)]) if tid >= 0 else "None"
-            rgba   = _color(int(rel)) if tid >= 0 else (0, 0, 0, 1)
+            rgba = _color(int(rel)) if tid >= 0 else (0, 0, 0, 1)
             imgs.append(_make_sample_img(get_img(img_id, images), int(tid), rgba))
         return np.array(_compose_grid(imgs))
 
@@ -143,12 +149,15 @@ def plot_trial_sampling(
         valid = rels[rels >= 0]
         return float(valid.mean()) if len(valid) > 0 else 0.0
 
-    anc_tid  = int(anc_tids[0])
+    anc_tid = int(anc_tids[0])
     anc_rgba = _color(int(anc_rels[0])) if anc_tid >= 0 else (0, 0, 0, 1)
-    anc_arr  = np.array(_make_sample_img(
-        get_img(str(trial_labels[anc_tid]) if anc_tid >= 0 else "None", images),
-        anc_tid, anc_rgba,
-    ))
+    anc_arr = np.array(
+        _make_sample_img(
+            get_img(str(trial_labels[anc_tid]) if anc_tid >= 0 else "None", images),
+            anc_tid,
+            anc_rgba,
+        )
+    )
     pos_arr = _group_arr(pos_tids, pos_rels)
     neg_arr = _group_arr(neg_tids, neg_rels)
 
@@ -169,15 +178,16 @@ def plot_trial_sampling(
     ):
         ax.imshow(arr)
         ax.set_title(title, fontsize=10, pad=2)
-        ax.text(0.5, -0.06, _fmt_avg(avg_rel),
-                transform=ax.transAxes, ha="center", va="top", fontsize=8)
+        ax.text(
+            0.5, -0.06, _fmt_avg(avg_rel), transform=ax.transAxes, ha="center", va="top", fontsize=8
+        )
         ax.set_box_aspect(1)
         ax.axis("off")
 
-    sm   = plt.cm.ScalarMappable(cmap=_cmap, norm=norm)
+    sm = plt.cm.ScalarMappable(cmap=_cmap, norm=norm)
     sm.set_array([])
     unit = "ms" if sfreq else "frames"
-    cax  = fig.add_axes([0.85, 0.18, 0.025, 0.65])
+    cax = fig.add_axes([0.85, 0.18, 0.025, 0.65])
     cbar = fig.colorbar(sm, cax=cax)
     cbar.set_label(f"In-trial time ({unit})", fontsize=8)
     ticks = np.linspace(t_min, t_max, 5)

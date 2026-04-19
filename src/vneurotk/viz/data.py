@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Tuple, List
+from typing import Tuple
 
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 from loguru import logger
-from .utils import _truncate_label, _is_null, _smart_ticks
+
+from .utils import _is_null, _smart_ticks, _truncate_label
+
 
 def plot_data(
     neuro: np.ndarray,
@@ -84,8 +86,7 @@ def plot_data(
     if trial is not None and trial_window is not None:
         # Convert trial_window to samples (float=seconds, int=samples)
         tw_samples = [
-            int(round(v * sfreq)) if isinstance(v, float) else int(v)
-            for v in trial_window
+            int(round(v * sfreq)) if isinstance(v, float) else int(v) for v in trial_window
         ]
         # Build stim_map from FULL arrays so edge-of-window trials are covered
         full_stim_map: dict[int, str] = {}
@@ -95,7 +96,11 @@ def plot_data(
 
         trial_win = trial[s_start:s_end]
         is_stim, y_cat, intrial_time, tick_labels = _parse_labels_with_trial(
-            y_win, trial_win, tw_samples, sfreq, full_stim_map,
+            y_win,
+            trial_win,
+            tw_samples,
+            sfreq,
+            full_stim_map,
         )
     else:
         is_stim, y_cat, intrial_time, tick_labels = _parse_labels(y_win)
@@ -104,8 +109,12 @@ def plot_data(
     # -- Layout --
     fig = plt.figure(figsize=figsize, constrained_layout=True)
     gs = fig.add_gridspec(
-        2, 2, width_ratios=[1, 0.015], height_ratios=[0.8, 1],
-        hspace=0.12, wspace=0.02,
+        2,
+        2,
+        width_ratios=[1, 0.015],
+        height_ratios=[0.8, 1],
+        hspace=0.12,
+        wspace=0.02,
     )
     ax_y = fig.add_subplot(gs[0, 0])
     cax_y = fig.add_subplot(gs[0, 1])
@@ -120,8 +129,14 @@ def plot_data(
         stride = max(1, len(y_win) // 5000)
         idx = np.where(~is_stim)[0][::stride]
         ax_y.scatter(
-            times[idx], y_cat[idx], c=color_offtime,
-            s=marker_size, marker=".", rasterized=True, linewidths=0, alpha=0.5,
+            times[idx],
+            y_cat[idx],
+            c=color_offtime,
+            s=marker_size,
+            marker=".",
+            rasterized=True,
+            linewidths=0,
+            alpha=0.5,
         )
 
     # In-trial points with combined baseline+active colormap
@@ -129,12 +144,22 @@ def plot_data(
         vmin = np.nanmin(intrial_time)
         vmax = np.nanmax(intrial_time)
         combined_cmap = _build_trial_cmap(
-            vmin, vmax, cmap_ontime, color_offtime,
+            vmin,
+            vmax,
+            cmap_ontime,
+            color_offtime,
         )
         sc = ax_y.scatter(
-            times[is_stim], y_cat[is_stim], c=intrial_time[is_stim],
-            cmap=combined_cmap, vmin=vmin, vmax=vmax,
-            s=marker_size, marker=".", rasterized=True, linewidths=0,
+            times[is_stim],
+            y_cat[is_stim],
+            c=intrial_time[is_stim],
+            cmap=combined_cmap,
+            vmin=vmin,
+            vmax=vmax,
+            s=marker_size,
+            marker=".",
+            rasterized=True,
+            linewidths=0,
         )
         cbar_y = fig.colorbar(sc, cax=cax_y)
         cbar_y.set_label("In-trial Time (s)", fontsize=10)
@@ -151,9 +176,12 @@ def plot_data(
     # -- Lower panel: neural activity --
     ax_x.set_title("Neural Activity", fontsize=10, loc="left")
     im = ax_x.imshow(
-        X_win.T, aspect="auto", origin="lower",
+        X_win.T,
+        aspect="auto",
+        origin="lower",
         extent=[t_min, t_max, 0, X_win.shape[1]],
-        cmap=cmap_neuro, interpolation="nearest",
+        cmap=cmap_neuro,
+        interpolation="nearest",
     )
     cbar_x = fig.colorbar(im, cax=cax_x)
     cbar_x.set_label("Amplitude", fontsize=10)
@@ -174,8 +202,12 @@ def plot_data(
 
     return fig
 
+
 def _build_trial_cmap(
-    vmin: float, vmax: float, active_cmap: str, baseline_color: str,
+    vmin: float,
+    vmax: float,
+    active_cmap: str,
+    baseline_color: str,
     n_colors: int = 256,
 ) -> mcolors.ListedColormap:
     """Build a colormap that is constant *baseline_color* for values < 0
@@ -192,16 +224,21 @@ def _build_trial_cmap(
 
     base_rgba = mcolors.to_rgba(baseline_color)
     act_cmap = plt.get_cmap(active_cmap)
-    colors = (
-        [base_rgba] * n_baseline
-        + [act_cmap(i / max(n_active - 1, 1)) for i in range(n_active)]
-    )
+    colors = [base_rgba] * n_baseline + [
+        act_cmap(i / max(n_active - 1, 1)) for i in range(n_active)
+    ]
     return mcolors.ListedColormap(colors)
 
 
-def _apply_ticks(target, vmin: float, vmax: float, *,
-                 is_cbar: bool = False, axis: str = "x",
-                 force_int: bool = False):
+def _apply_ticks(
+    target,
+    vmin: float,
+    vmax: float,
+    *,
+    is_cbar: bool = False,
+    axis: str = "x",
+    force_int: bool = False,
+):
     """Apply smart ticks to an Axes or colorbar.
 
     Parameters
@@ -333,12 +370,8 @@ def _parse_labels_with_trial(
                 stim_map[int(trial_win[i])] = str(y_win[i])
 
     # --- categorical mapping (only stims visible in the window) ---
-    unique_tids = sorted(set(
-        int(trial_win[i]) for i in range(n) if is_in_trial[i]
-    ))
-    window_stims = dict.fromkeys(
-        stim_map[tid] for tid in unique_tids if tid in stim_map
-    )
+    unique_tids = sorted(set(int(trial_win[i]) for i in range(n) if is_in_trial[i]))
+    window_stims = dict.fromkeys(stim_map[tid] for tid in unique_tids if tid in stim_map)
     unique_stims = list(window_stims)
     cat_map = {None: 0}
     cat_map.update({s: i + 1 for i, s in enumerate(unique_stims)})
@@ -348,9 +381,7 @@ def _parse_labels_with_trial(
 
     # --- assign y-category and intrial_time for every in-trial point ---
     for tid in unique_tids:
-        mask = np.array(
-            [is_in_trial[i] and int(trial_win[i]) == tid for i in range(n)]
-        )
+        mask = np.array([is_in_trial[i] and int(trial_win[i]) == tid for i in range(n)])
         indices = np.where(mask)[0]
         count = len(indices)
 

@@ -5,8 +5,8 @@
 
 from __future__ import annotations
 
-from vneurotk.io import read
 from vneurotk import utils
+from vneurotk.io import read
 from vneurotk.vision.extractor.extractor import VisionExtractor
 
 __version__ = "0.1.0"

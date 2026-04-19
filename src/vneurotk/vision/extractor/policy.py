@@ -9,7 +9,6 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any, Callable
 
-import torch
 from torch import Tensor
 
 __all__ = ["EmbeddingPolicy"]
@@ -107,6 +106,7 @@ class EmbeddingPolicy(str, Enum):
 # ------------------------------------------------------------------
 # Policy implementations
 # ------------------------------------------------------------------
+
 
 def _to_tensor(x: Any) -> Tensor:
     """Coerce model output to a Tensor."""

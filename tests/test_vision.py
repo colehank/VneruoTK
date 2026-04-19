@@ -12,27 +12,28 @@ Covers:
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 import pytest
 import torch
 import torch.nn as nn
-from typing import Any
 
+from vneurotk.vision.extractor.backend.base import BaseBackend, LayerInfo
 from vneurotk.vision.extractor.policy import EmbeddingPolicy
 from vneurotk.vision.extractor.selector import (
     AllLeafSelector,
     BlockLevelSelector,
     CustomSelector,
 )
-from vneurotk.vision.extractor.backend.base import BaseBackend, LayerInfo
 from vneurotk.vision.registry import REGISTRY, ModelConfig, ModelRegistry
-from vneurotk.vision.representation import LayerMeta, ModelMeta
+from vneurotk.vision.representation import ModelMeta
 from vneurotk.vision.visual_representations import VisualRepresentations
-
 
 # ===========================================================================
 # Helpers / Fixtures
 # ===========================================================================
+
 
 def _make_model_meta(**kw) -> ModelMeta:
     defaults = dict(
@@ -62,6 +63,7 @@ def _make_vr(n_stim: int = 5, d: int = 8) -> VisualRepresentations:
 # ===========================================================================
 # TestVisualRepresentations
 # ===========================================================================
+
 
 class TestVisualRepresentations:
     def test_basic_properties(self):
@@ -124,6 +126,7 @@ class TestVisualRepresentations:
 # TestEmbeddingPolicy
 # ===========================================================================
 
+
 class TestEmbeddingPolicy:
     def _flat(self, d=16):
         return torch.randn(d)
@@ -157,7 +160,9 @@ class TestEmbeddingPolicy:
         assert emb.shape == (16,)
 
     def test_custom_fn(self):
-        fn = lambda o, a: o.squeeze()
+        def fn(o, a):
+            return o.squeeze()
+
         out = torch.randn(1, 8)
         emb = EmbeddingPolicy.CUSTOM.apply(out, {}, custom_fn=fn)
         assert emb.shape == (8,)
@@ -175,6 +180,7 @@ class TestEmbeddingPolicy:
 # ===========================================================================
 # TestLayerSelector
 # ===========================================================================
+
 
 def _tiny_model():
     return nn.Sequential(
@@ -221,6 +227,7 @@ class TestLayerSelector:
 # TestModelRegistry
 # ===========================================================================
 
+
 class TestModelRegistry:
     def test_builtin_entries(self):
         names = REGISTRY.list()
@@ -240,9 +247,12 @@ class TestModelRegistry:
 
     def test_register_custom(self):
         reg = ModelRegistry()
-        reg.register("my-model", ModelConfig(
-            source="timm", model_id="resnet18", policy="mean_pool", paradigm="supervised"
-        ))
+        reg.register(
+            "my-model",
+            ModelConfig(
+                source="timm", model_id="resnet18", policy="mean_pool", paradigm="supervised"
+            ),
+        )
         assert "my-model" in reg
         assert reg.get("my-model").model_id == "resnet18"
 
@@ -257,6 +267,7 @@ class TestModelRegistry:
 # ===========================================================================
 # TestTrialStimIds
 # ===========================================================================
+
 
 class TestTrialStimIds:
     def _make_bd(self, stim_ids=None):
@@ -293,6 +304,7 @@ class TestTrialStimIds:
 
     def test_unconfigured_raises(self):
         from vneurotk.neuro.base import BaseData
+
         bd = BaseData(
             neuro=np.zeros((10, 2)),
             neuro_info=dict(sfreq=1.0),
@@ -304,6 +316,7 @@ class TestTrialStimIds:
 # ===========================================================================
 # MockBackend
 # ===========================================================================
+
 
 class _MockBackend(BaseBackend):
     """Minimal backend wrapping a tiny nn.Sequential for hook tests."""
@@ -343,6 +356,7 @@ class _MockBackend(BaseBackend):
 # TestVisionExtractorMock
 # ===========================================================================
 
+
 class TestVisionExtractorMock:
     def _make_extractor(self):
         from vneurotk.vision.extractor.extractor import VisionExtractor
@@ -370,7 +384,7 @@ class TestVisionExtractorMock:
         ext = self._make_extractor()
         image = np.random.rand(4).astype(np.float32)
         vr = ext.extract(image)
-        assert vr.final_embedding.ndim == 2   # (1, D)
+        assert vr.final_embedding.ndim == 2  # (1, D)
         assert vr.final_embedding.shape[0] == 1
 
     def test_extract_single_layer_exists(self):
@@ -407,16 +421,20 @@ class TestVisionExtractorMock:
 # Smoke tests — require real packages
 # ===========================================================================
 
+
 def _timm_installed():
     try:
         import timm  # noqa: F401
+
         return True
     except ImportError:
         return False
 
+
 def _transformers_installed():
     try:
         import transformers  # noqa: F401
+
         return True
     except ImportError:
         return False
@@ -425,6 +443,7 @@ def _transformers_installed():
 def _thingsvision_installed():
     try:
         import thingsvision  # noqa: F401
+
         return True
     except ImportError:
         return False
@@ -433,9 +452,10 @@ def _thingsvision_installed():
 @pytest.mark.skipif(not _timm_installed(), reason="timm not installed")
 class TestTimmSmokeTest:
     def test_resnet18_end_to_end(self):
+        from PIL import Image
+
         from vneurotk.vision.extractor.backend.timm_backend import TimmBackend
         from vneurotk.vision.extractor.selector import BlockLevelSelector
-        from PIL import Image
 
         backend = TimmBackend(device="cpu")
         backend.load("resnet18", pretrained=False)
@@ -459,9 +479,10 @@ class TestTimmSmokeTest:
 @pytest.mark.skipif(not _transformers_installed(), reason="transformers not installed")
 class TestTransformersSmokeTest:
     def test_dinov2_all_tokens(self):
+        from PIL import Image
+
         from vneurotk.vision.extractor.backend.transformers_backend import TransformersBackend
         from vneurotk.vision.extractor.selector import BlockLevelSelector
-        from PIL import Image
 
         backend = TransformersBackend(device="cpu", learning_paradigm="selfsupervised")
         backend.load("facebook/dinov2-base")
@@ -487,9 +508,10 @@ class TestTransformersSmokeTest:
 @pytest.mark.skipif(not _thingsvision_installed(), reason="thingsvision not installed")
 class TestThingsVisionSmokeTest:
     def test_resnet18_end_to_end(self):
+        from PIL import Image
+
         from vneurotk.vision.extractor.backend.thingsvision_backend import ThingsVisionBackend
         from vneurotk.vision.extractor.selector import BlockLevelSelector
-        from PIL import Image
 
         backend = ThingsVisionBackend(source="torchvision", device="cpu")
         backend.load("resnet18", pretrained=False)

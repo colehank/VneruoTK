@@ -13,7 +13,7 @@ from __future__ import annotations
 import re
 from abc import ABC, abstractmethod
 from collections import OrderedDict
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 import torch
@@ -223,7 +223,4 @@ class BaseBackend(ABC):
 
     def _move_to_device(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """Move all Tensor values in *inputs* to :attr:`device`."""
-        return {
-            k: v.to(self.device) if isinstance(v, Tensor) else v
-            for k, v in inputs.items()
-        }
+        return {k: v.to(self.device) if isinstance(v, Tensor) else v for k, v in inputs.items()}

@@ -1,7 +1,9 @@
 """
 General-purpose signal time utilities.
 """
+
 from __future__ import annotations
+
 
 def sec_to_samples(sec: float, sfreq: float) -> int:
     """Convert time in seconds to sample count.

@@ -59,8 +59,10 @@ class TransformersBackend(BaseBackend):
         """
         try:
             from transformers import (
-                AutoModel, AutoProcessor,
-                CLIPProcessor, CLIPVisionModelWithProjection,
+                AutoModel,
+                AutoProcessor,
+                CLIPProcessor,
+                CLIPVisionModelWithProjection,
                 SiglipVisionModel,
             )
         except ImportError as exc:
@@ -77,7 +79,9 @@ class TransformersBackend(BaseBackend):
 
         if self._is_clip:
             self._processor = CLIPProcessor.from_pretrained(model_name)
-            self.model = CLIPVisionModelWithProjection.from_pretrained(model_name, use_safetensors=True)
+            self.model = CLIPVisionModelWithProjection.from_pretrained(
+                model_name, use_safetensors=True
+            )
         elif self._is_siglip:
             self._processor = AutoProcessor.from_pretrained(model_name)
             self.model = SiglipVisionModel.from_pretrained(model_name, use_safetensors=True)
@@ -167,12 +171,14 @@ class TransformersBackend(BaseBackend):
         for name, module in source.named_modules():
             if not name:
                 continue
-            result.append(LayerInfo(
-                name=name,
-                module_type=type(module).__name__,
-                depth=name.count(".") + 1,
-                n_params=sum(p.numel() for p in module.parameters()),
-            ))
+            result.append(
+                LayerInfo(
+                    name=name,
+                    module_type=type(module).__name__,
+                    depth=name.count(".") + 1,
+                    n_params=sum(p.numel() for p in module.parameters()),
+                )
+            )
         return result
 
     def get_model_meta(self) -> ModelMeta:
@@ -205,8 +211,8 @@ class TransformersBackend(BaseBackend):
         self._activations.clear()
 
         source = self._hook_model if self._is_clip else self.model
+
         import torch.nn as nn
-        from collections import OrderedDict
 
         named = dict(source.named_modules())
         missing = [n for n in layer_names if n not in named]
@@ -228,7 +234,11 @@ class TransformersBackend(BaseBackend):
             handle = module.register_forward_hook(_hook)
             self._hooks.append(handle)
 
-        logger.debug("Registered {} hooks on {}", len(layer_names), "CLIP vision_model" if self._is_clip else "model")
+        logger.debug(
+            "Registered {} hooks on {}",
+            len(layer_names),
+            "CLIP vision_model" if self._is_clip else "model",
+        )
 
     # ------------------------------------------------------------------
     # Private helpers

@@ -62,14 +62,14 @@ class BlockLevelSelector(LayerSelector):
     """
 
     _ARCH_PATTERNS: list[tuple[str, int]] = [
-        (r"^blocks\.\d+$", 2),                      # timm ViT
-        (r"^encoder\.layers\.\d+$", 3),             # HF ViT (plural)
-        (r"^encoder\.layer\.\d+$", 3),              # HF DINOv2 (singular)
-        (r"^model\.layer\.\d+$", 3),                # HF DINOv3
-        (r"^layer\d+\.\d+$", 3),                    # ResNet
-        (r"^features\.\d+$", 2),                    # VGG / EfficientNet
-        (r"^stages\.\d+$", 2),                      # ConvNeXt
-        (r"^layers\.\d+$", 2),                      # Swin / generic
+        (r"^blocks\.\d+$", 2),  # timm ViT
+        (r"^encoder\.layers\.\d+$", 3),  # HF ViT (plural)
+        (r"^encoder\.layer\.\d+$", 3),  # HF DINOv2 (singular)
+        (r"^model\.layer\.\d+$", 3),  # HF DINOv3
+        (r"^layer\d+\.\d+$", 3),  # ResNet
+        (r"^features\.\d+$", 2),  # VGG / EfficientNet
+        (r"^stages\.\d+$", 2),  # ConvNeXt
+        (r"^layers\.\d+$", 2),  # Swin / generic
         (r"^vision_model\.encoder\.layers\.\d+$", 4),  # SigLIP / SigLIP2
     ]
 
@@ -100,10 +100,7 @@ class BlockLevelSelector(LayerSelector):
                 continue
             depth = name.count(".") + 1
 
-            matched = any(
-                pat.match(name) and depth <= max_d
-                for pat, max_d in compiled
-            )
+            matched = any(pat.match(name) and depth <= max_d for pat, max_d in compiled)
             if not matched:
                 matched = any(pat.search(name) for pat in self._extra)
 
@@ -137,9 +134,7 @@ class AllLeafSelector(LayerSelector):
     )
 
     def __init__(self, exclude_types: tuple | None = None) -> None:
-        self.exclude_types = (
-            exclude_types if exclude_types is not None else self._DEFAULT_EXCLUDE
-        )
+        self.exclude_types = exclude_types if exclude_types is not None else self._DEFAULT_EXCLUDE
 
     def select(self, model: nn.Module) -> list[str]:
         """Return names of all non-excluded leaf modules.
@@ -155,9 +150,7 @@ class AllLeafSelector(LayerSelector):
         return [
             name
             for name, module in model.named_modules()
-            if name
-            and not list(module.children())
-            and not isinstance(module, self.exclude_types)
+            if name and not list(module.children()) and not isinstance(module, self.exclude_types)
         ]
 
 

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any
 
-
 _STYLE = (
     "<style scoped>"
     ".vtk-info{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',"
@@ -61,18 +60,12 @@ class Info:
 
     @staticmethod
     def _table(rows: list[tuple[str, str]]) -> str:
-        trs = "".join(
-            f"<tr><th>{k}</th><td>{v}</td></tr>" for k, v in rows
-        )
+        trs = "".join(f"<tr><th>{k}</th><td>{v}</td></tr>" for k, v in rows)
         return f"<table>{trs}</table>"
 
     @staticmethod
     def _section(title: str, body: str) -> str:
-        return (
-            f"<details open>"
-            f"<summary><strong>{title}</strong></summary>"
-            f"{body}</details>"
-        )
+        return f"<details open><summary><strong>{title}</strong></summary>{body}</details>"
 
     @staticmethod
     def _na(text: str = "Not configured") -> str:
@@ -97,34 +90,44 @@ class Info:
         parts = [self._section("Neuro", self._table(neuro_rows))]
 
         if self._configured and self._visual is not None:
-            parts.append(self._section(
-                "Visual",
-                self._table([("n_visual", str(self._visual["n_stim"]))]),
-            ))
+            parts.append(
+                self._section(
+                    "Visual",
+                    self._table([("n_visual", str(self._visual["n_stim"]))]),
+                )
+            )
         else:
-            parts.append(self._section(
-                "Visual",
-                self._table([("Status", self._na())]),
-            ))
+            parts.append(
+                self._section(
+                    "Visual",
+                    self._table([("Status", self._na())]),
+                )
+            )
 
         if self._configured and self._trial is not None:
             t = self._trial
             index_unit = "in segmented" if self._crop_mode else "in raw"
             data_mode = self._crop_mode if self._crop_mode else self._na("N/A")
-            parts.append(self._section(
-                "Trial",
-                self._table([
-                    ("Baseline", str(t["baseline"])),
-                    ("Trial window", str(t["trial_window"])),
-                    ("Index unit", index_unit),
-                    ("Data mode", data_mode),
-                ]),
-            ))
+            parts.append(
+                self._section(
+                    "Trial",
+                    self._table(
+                        [
+                            ("Baseline", str(t["baseline"])),
+                            ("Trial window", str(t["trial_window"])),
+                            ("Index unit", index_unit),
+                            ("Data mode", data_mode),
+                        ]
+                    ),
+                )
+            )
         else:
-            parts.append(self._section(
-                "Trial",
-                self._table([("Status", self._na())]),
-            ))
+            parts.append(
+                self._section(
+                    "Trial",
+                    self._table([("Status", self._na())]),
+                )
+            )
 
         body = "".join(parts)
         return f'{_STYLE}<div class="vtk-info">{body}</div>'
@@ -143,9 +146,7 @@ class Info:
         if self._data_level != "timepoint":
             lines[1] += f", data_level={self._data_level}"
         if self._configured and self._visual is not None:
-            lines.append(
-                f"  Visual: n_visual={self._visual['n_stim']}"
-            )
+            lines.append(f"  Visual: n_visual={self._visual['n_stim']}")
         else:
             lines.append("  Visual: Not configured")
         if self._configured and self._trial is not None:

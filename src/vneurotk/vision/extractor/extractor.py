@@ -11,7 +11,6 @@ from vneurotk.vision.extractor.backend.base import BaseBackend
 from vneurotk.vision.extractor.policy import EmbeddingPolicy
 from vneurotk.vision.extractor.selector import BlockLevelSelector, LayerSelector
 from vneurotk.vision.registry import REGISTRY, ModelConfig
-from vneurotk.vision.representation import ModelMeta
 from vneurotk.vision.visual_representations import VisualRepresentations
 
 __all__ = ["VisionExtractor"]
@@ -169,6 +168,7 @@ class VisionExtractor:
 
     def _extract_single(self, image: Any) -> VisualRepresentations:
         from pathlib import Path
+
         from PIL import Image as PILImage
 
         if isinstance(image, Path):
@@ -179,14 +179,10 @@ class VisionExtractor:
         activations = self._backend.collect_activations()
 
         final_embedding = (
-            self._policy.apply(raw_output, activations, self._custom_fn)
-            .detach().cpu().numpy()
+            self._policy.apply(raw_output, activations, self._custom_fn).detach().cpu().numpy()
         )
 
-        features = {
-            name: act.numpy()[np.newaxis]
-            for name, act in activations.items()
-        }
+        features = {name: act.numpy()[np.newaxis] for name, act in activations.items()}
 
         model_meta = self._backend.get_model_meta()
         model_meta.embedding_policy = self._policy.value
@@ -209,10 +205,7 @@ class VisionExtractor:
                 all_features.setdefault(layer, []).append(arr[0])
             all_embeddings.append(rep.final_embedding[0])
 
-        features = {
-            layer: np.stack(arrs, axis=0)
-            for layer, arrs in all_features.items()
-        }
+        features = {layer: np.stack(arrs, axis=0) for layer, arrs in all_features.items()}
         final_embedding = np.stack(all_embeddings, axis=0)
 
         model_meta = self._backend.get_model_meta()
@@ -220,7 +213,9 @@ class VisionExtractor:
 
         logger.info(
             "Extracted batch | n={} | layers={} | embedding_shape={}",
-            len(stim_ids), len(features), final_embedding.shape,
+            len(stim_ids),
+            len(features),
+            final_embedding.shape,
         )
         return VisualRepresentations(
             stim_ids=stim_ids,
@@ -247,6 +242,7 @@ class VisionExtractor:
             return TransformersBackend(device=device, learning_paradigm=paradigm)
         if source == "thingsvision":
             from vneurotk.vision.extractor.backend.thingsvision_backend import ThingsVisionBackend
+
             return ThingsVisionBackend(device=device, learning_paradigm=paradigm)
         raise ValueError(
             f"Unknown backend source {source!r}.  "
