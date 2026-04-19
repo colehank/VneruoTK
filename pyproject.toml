@@ -1,7 +1,11 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
 [project]
 name = "vneurotk"
-version = "0.1.0"
-description = "Add your description here"
+dynamic = ["version"]
+description = "Unified toolkit for visual neuroscience"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -22,16 +26,31 @@ dependencies = [
     "trialcebra>=0.0.1a2",
 ]
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+[tool.hatch.version]
+source = "vcs"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/vneurotk"]
 
 [dependency-groups]
 dev = [
-    "hatchling>=1.29.0",
+    "hatch-vcs>=0.4",
     "ipykernel>=7.2.0",
-    "pytest>=9.0.2",
+    "pre-commit>=4.0",
+    "pytest>=8.0",
+    "ruff>=0.9",
+]
+
+[tool.ruff]
+line-length = 100
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = [
+    "ignore::DeprecationWarning:torch.jit",
 ]
